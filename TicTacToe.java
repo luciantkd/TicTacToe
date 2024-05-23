@@ -57,7 +57,17 @@ public class TicTacToe implements ActionListener {
                         textField.setText("O turn");
                         check();
                         if (!isGameOver()){
-                            aiMove();
+                            new SwingWorker<Void, Void>() {
+                                @Override
+                                protected Void doInBackground() throws Exception {
+                                    Thread.sleep(1000); // Delay for AI move
+                                    return null;
+                                }
+                                @Override
+                                protected void done() {
+                                    aiMove();
+                                }
+                            }.execute();
                         }
                     }
                 } 
@@ -66,19 +76,24 @@ public class TicTacToe implements ActionListener {
     }
 
     public void firstTurn(){
-        try {
-            Thread.sleep(2000);            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         if (random.nextInt(2) == 0){
             player1_turn = true;
             textField.setText("X turn");
         } else {
             player1_turn = false;
             textField.setText("O turn");
-            aiMove();
+            new SwingWorker<Void, Void>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    Thread.sleep(1000); // Delay for AI move
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    aiMove();
+                }
+            }.execute();
         }
     }
 
@@ -170,7 +185,6 @@ public class TicTacToe implements ActionListener {
             return "Tie";
         }
         return null;
-
     }
 
     private boolean checkCombination(String player, int a, int b, int c) {
