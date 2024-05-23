@@ -5,21 +5,24 @@ import javax.swing.*;
 
 public class TicTacToe implements ActionListener {
 
-    Random random = new Random();
-    JFrame frame = new JFrame();
-    JPanel title_panel = new JPanel();
-    JPanel button_panel = new JPanel();
-    JLabel textField = new JLabel();
-    JButton[] buttons = new JButton[9];
-    boolean player1_turn;
+    Random random = new Random(); // Random generator for deciding the first turn
+    JFrame frame = new JFrame(); // Main window frame
+    JPanel title_panel = new JPanel(); // Panel for the game title
+    JPanel button_panel = new JPanel(); // Panel for the game buttons
+    JLabel textField = new JLabel(); // Label to display game status
+    JButton[] buttons = new JButton[9]; // Array of buttons for the Tic Tac Toe grid
+    boolean player1_turn; // Boolean to track which player's turn it is
 
+    // Constructor to initialize the game
     TicTacToe(){
+        // Setup frame
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800,800);
         frame.getContentPane().setBackground(new Color(40, 44, 52));
         frame.setLayout(new BorderLayout());
         frame.setVisible(true);
 
+        // Setup text field for the game title/status
         textField.setBackground(new Color (60, 63, 65));
         textField.setForeground(new Color (255, 255, 255));
         textField.setFont(new Font("Helvetica", Font.BOLD, 75));
@@ -27,11 +30,13 @@ public class TicTacToe implements ActionListener {
         textField.setText("Tic-Tac-Toe");
         textField.setOpaque(true);
 
+        // Setup title panel
         title_panel.setLayout(new BorderLayout());
         title_panel.setBounds(0, 0, 800, 100);
         title_panel.add(textField, BorderLayout.CENTER);
         frame.add(title_panel, BorderLayout.NORTH);
 
+        // Setup button panel
         button_panel.setLayout(new GridLayout(3, 3));
         for (int i = 0; i < 9; i++) {
             buttons[i] = new JButton();
@@ -46,6 +51,7 @@ public class TicTacToe implements ActionListener {
         firstTurn();              // Initialize the first turn
     }
 
+    // Action performed method to handle button clicks
     public void actionPerformed(ActionEvent e){
         for (int i=0; i<9; i++){
             if (e.getSource()==buttons[i]){
@@ -55,12 +61,13 @@ public class TicTacToe implements ActionListener {
                         buttons[i].setText("X");
                         player1_turn = false;
                         textField.setText("O turn");
-                        check();
+                        check(); // Check if there's a winner after the move
                         if (!isGameOver()){
+                            // Delay for AI move
                             new SwingWorker<Void, Void>() {
                                 @Override
                                 protected Void doInBackground() throws Exception {
-                                    Thread.sleep(1000); // Delay for AI move
+                                    Thread.sleep(1000);
                                     return null;
                                 }
                                 @Override
@@ -75,6 +82,7 @@ public class TicTacToe implements ActionListener {
         }
     }
 
+    // Method to determine the first turn
     public void firstTurn(){
         if (random.nextInt(2) == 0){
             player1_turn = true;
@@ -82,10 +90,11 @@ public class TicTacToe implements ActionListener {
         } else {
             player1_turn = false;
             textField.setText("O turn");
+            // Delay for AI move if it goes first
             new SwingWorker<Void, Void>() {
                 @Override
                 protected Void doInBackground() throws Exception {
-                    Thread.sleep(1000); // Delay for AI move
+                    Thread.sleep(1000);
                     return null;
                 }
 
@@ -97,6 +106,7 @@ public class TicTacToe implements ActionListener {
         }
     }
 
+    // AI move method
     public void aiMove(){
         int bestScore = Integer.MIN_VALUE;
         int bestMove = -1;
@@ -122,15 +132,16 @@ public class TicTacToe implements ActionListener {
         }
     }
 
+    // Minimax algorithm to determine the best move for the AI
     public int minimax(JButton[] board, int depth, boolean isMaximizing) {
         String result = checkWinner();
         if (result != null){
             if (result.equals("X")){
-                return -10 + depth;
+                return -10 + depth; // Return score for X win
             } else if (result.equals("O")){
-                return 10 - depth;
+                return 10 - depth; // Return score for O win
             } else{
-                return 0;
+                return 0; // Return score for a tie
             }
         }
 
@@ -160,6 +171,7 @@ public class TicTacToe implements ActionListener {
 
     }
 
+    // Method to check the winner
     public String checkWinner(){
         // Check X win conditions
         if (checkCombination("X", 0, 1, 2) || checkCombination("X", 3, 4, 5) || checkCombination("X", 6, 7, 8) ||
@@ -187,10 +199,12 @@ public class TicTacToe implements ActionListener {
         return null;
     }
 
+    // Helper method to check if three buttons have the same player's symbol
     private boolean checkCombination(String player, int a, int b, int c) {
         return buttons[a].getText().equals(player) && buttons[b].getText().equals(player) && buttons[c].getText().equals(player);
     }
 
+    // Method to check the game state and determine if there's a winner or a tie
     public void check() {
         String winner = checkWinner();
         if (winner != null) {
@@ -207,27 +221,29 @@ public class TicTacToe implements ActionListener {
         }
     }
 
-
+    // Method to handle X winning the game
     public void xWins(){
         for (int i = 0; i < 9; i++) {
             if (buttons[i].getText().equals("X")) {
-                buttons[i].setBackground(new Color(144, 238, 144));
+                buttons[i].setBackground(new Color(144, 238, 144)); // Highlight winning X buttons
             }
-            buttons[i].setEnabled(false);
+            buttons[i].setEnabled(false); // Disable all buttons
         }
         textField.setText("X wins");
     }
 
+    // Method to handle O winning the game
     public void oWins(){
         for (int i = 0; i < 9; i++) {
             if (buttons[i].getText().equals("O")) {
-                buttons[i].setBackground(new Color(173, 216, 230)); 
+                buttons[i].setBackground(new Color(173, 216, 230)); // Highlight winning O buttons
             }
-            buttons[i].setEnabled(false);
+            buttons[i].setEnabled(false); // Disable all buttons
         }
         textField.setText("O wins");
     }
 
+    // Method to check if the game is over
     public boolean isGameOver(){
         return checkWinner() != null;
     }
