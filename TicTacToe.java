@@ -47,7 +47,6 @@ public class TicTacToe implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e){
-
         for (int i=0; i<9; i++){
             if (e.getSource()==buttons[i]){
                 if (player1_turn) {
@@ -58,7 +57,17 @@ public class TicTacToe implements ActionListener {
                         textField.setText("O turn");
                         check();
                         if (!isGameOver()){
-                            aiMove();
+                            new SwingWorker<Void, Void>() {
+                                @Override
+                                protected Void doInBackground() throws Exception {
+                                    Thread.sleep(1000); // Delay for AI move
+                                    return null;
+                                }
+                                @Override
+                                protected void done() {
+                                    aiMove();
+                                }
+                            }.execute();
                         }
                     }
                 } 
@@ -67,22 +76,25 @@ public class TicTacToe implements ActionListener {
     }
 
     public void firstTurn(){
-
-        try {
-            Thread.sleep(2000);            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
         if (random.nextInt(2) == 0){
             player1_turn = true;
             textField.setText("X turn");
         } else {
             player1_turn = false;
             textField.setText("O turn");
+            new SwingWorker<Void, Void>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    Thread.sleep(1000); // Delay for AI move
+                    return null;
+                }
 
+                @Override
+                protected void done() {
+                    aiMove();
+                }
+            }.execute();
         }
-
     }
 
     public void aiMove(){
@@ -101,35 +113,98 @@ public class TicTacToe implements ActionListener {
             }
         }
 
-        buttons[bestMove].setForeground(new Color(135, 206, 235));
-        buttons[bestMove].setText("O");
-        player1_turn = true;
-        textField.setText("X turn");
-        check();
+        if (bestMove != -1) {
+            buttons[bestMove].setForeground(new Color(135, 206, 235));
+            buttons[bestMove].setText("O");
+            player1_turn = true;
+            textField.setText("X turn");
+            check();
+        }
     }
 
-    public int minimax() {
+    public int minimax(JButton[] board, int depth, boolean isMaximizing) {
+        String result = checkWinner();
+        if (result != null){
+            if (result.equals("X")){
+                return -10 + depth;
+            } else if (result.equals("O")){
+                return 10 - depth;
+            } else{
+                return 0;
+            }
+        }
+
+        if (isMaximizing){
+            int bestScore = Integer.MIN_VALUE;
+            for (int i=0; i<9; i++){
+                if (board[i].getText().equals("")){
+                    board[i].setText("O");
+                    int score = minimax(board, depth + 1, false);
+                    board[i].setText("");
+                    bestScore = Math.max(score, bestScore);
+                }
+            }
+            return bestScore;
+        } else {
+            int bestScore = Integer.MAX_VALUE;
+            for (int i = 0; i < 9; i++){
+                if (board[i].getText().equals("")){
+                    board[i].setText("X");
+                    int score = minimax(board, depth + 1, true);
+                    board[i].setText("");
+                    bestScore = Math.min(score, bestScore);
+                }
+            }
+            return bestScore;
+        }
 
     }
 
-    public void check(){
+    public String checkWinner(){
         // Check X win conditions
         if (checkCombination("X", 0, 1, 2) || checkCombination("X", 3, 4, 5) || checkCombination("X", 6, 7, 8) ||
             checkCombination("X", 0, 3, 6) || checkCombination("X", 1, 4, 7) || checkCombination("X", 2, 5, 8) ||
             checkCombination("X", 0, 4, 8) || checkCombination("X", 2, 4, 6)) {
-            xWins();
+            return "X";
         }
         // Check O win conditions
         else if (checkCombination("O", 0, 1, 2) || checkCombination("O", 3, 4, 5) || checkCombination("O", 6, 7, 8) ||
                  checkCombination("O", 0, 3, 6) || checkCombination("O", 1, 4, 7) || checkCombination("O", 2, 5, 8) ||
                  checkCombination("O", 0, 4, 8) || checkCombination("O", 2, 4, 6)) {
-            oWins();
+            return "O";
         }
-
+        // Check for a tie
+        boolean boardFull = true;
+        for (int i = 0; i < 9; i++){
+            if (buttons[i].getText().equals("")){
+                boardFull = false;
+                break;
+            }
+        }
+        if (boardFull){
+            return "Tie";
+        }
+        return null;
     }
 
     private boolean checkCombination(String player, int a, int b, int c) {
         return buttons[a].getText().equals(player) && buttons[b].getText().equals(player) && buttons[c].getText().equals(player);
+    }
+
+    public void check() {
+        String winner = checkWinner();
+        if (winner != null) {
+            if (winner.equals("X")) {
+                xWins();
+            } else if (winner.equals("O")) {
+                oWins();
+            } else {
+                textField.setText("Tie");
+                for (int i = 0; i < 9; i++) {
+                    buttons[i].setEnabled(false);
+                }
+            }
+        }
     }
 
 
@@ -146,7 +221,7 @@ public class TicTacToe implements ActionListener {
     public void oWins(){
         for (int i = 0; i < 9; i++) {
             if (buttons[i].getText().equals("O")) {
-                buttons[i].setBackground(new Color(173, 216, 230));  // Light Blue for O win
+                buttons[i].setBackground(new Color(173, 216, 230)); 
             }
             buttons[i].setEnabled(false);
         }
@@ -156,5 +231,4 @@ public class TicTacToe implements ActionListener {
     public boolean isGameOver(){
         return checkWinner() != null;
     }
-    
 }
